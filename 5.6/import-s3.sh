@@ -4,6 +4,8 @@
 [ -z "${AWS_SECRET_ACCESS_KEY}" ] && { echo "S3-Restore: AWS_SECRET_ACCESS_KEY cannot be empty" && exit 1; }
 [ -z "${AWS_S3_BUCKET}" ] && { echo "S3-Restore: AWS_S3_BUCKET cannot be empty" && exit 1; }
 [ -z "${AWS_S3_PREFIX}" ] && { echo "S3-Restore: AWS_S3_PREFIX cannot be empty" && exit 1; }
+[ -z "${MYSQL_USER}" ] && { echo "S3-Restore: MYSQL_USER cannot be empty" && exit 1; }
+[ -z "${MYSQL_HOST}" ] && { echo "S3-Restore: MYSQL_HOST cannot be empty" && exit 1; }
 
 tmp_dir=/tmp/restore-s3
 tmp_file=$tmp_dir/dump.gz
@@ -26,10 +28,12 @@ mkdir $tmp_dir
 echo "S3-Restore: Downloading ${key}"
 aws s3 cp $filepath $tmp_file
 
+echo "S3-restore: importing ${MYSQL_USER}@${MYSQL_HOST}/${MYSQL_DATABASE}"
 zcat $tmp_file \
         | mysql \
-        -u root \
-        -p${MYSQL_ROOT_PASSWORD} \
+        -h ${MYSQL_HOST} \
+        -u ${MYSQL_USER} \
+        -p${MYSQL_PASSWORD} \
         ${MYSQL_DATABASE}
 
 rm -rf $tmp_dir
